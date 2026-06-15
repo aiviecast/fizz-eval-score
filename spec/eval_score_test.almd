@@ -1,0 +1,60 @@
+import self as sc
+import float
+
+// Float をミリ単位 Int にして厳密比較(浮動小数の表現差を吸収)。
+fn milli(x: Float) -> Int = float.to_int(float.round(x * 1000.0))
+
+test "clamp_score: 1..7" {
+  assert_eq(sc.clamp_score(0), 1)
+  assert_eq(sc.clamp_score(1), 1)
+  assert_eq(sc.clamp_score(4), 4)
+  assert_eq(sc.clamp_score(7), 7)
+  assert_eq(sc.clamp_score(9), 7)
+  assert_eq(sc.clamp_score(-3), 1)
+}
+
+test "composite: eval.rs と一致" {
+  // 0.20·6+0.20·5+0.15·4+0.10·5+0.20·6+0.10·5+0.05·4 = 5.2
+  assert_eq(milli(sc.composite(6, 5, 4, 5, 6, 5, 4)), 5200)
+  // 全 7 → 7.0
+  assert_eq(milli(sc.composite(7, 7, 7, 7, 7, 7, 7)), 7000)
+  // 全 1 → 1.0
+  assert_eq(milli(sc.composite(1, 1, 1, 1, 1, 1, 1)), 1000)
+  // 全 4(中立)→ 4.0
+  assert_eq(milli(sc.composite(4, 4, 4, 4, 4, 4, 4)), 4000)
+}
+
+test "composite_clamped: 異常スコアを吸収" {
+  // 9→7, 0→1 にクランプしてから合成
+  assert_eq(milli(sc.composite_clamped(9, 5, 4, 5, 6, 5, 0)), 5250)
+}
+
+test "to_percent: Likert 1..7 → 0..100" {
+  assert_eq(milli(sc.to_percent(1.0)), 0)
+  assert_eq(milli(sc.to_percent(7.0)), 100000)
+  assert_eq(milli(sc.to_percent(4.0)), 50000)
+}
+
+test "is_pass: threshold 判定" {
+  assert_eq(sc.is_pass(5.2, 4.5), true)
+  assert_eq(sc.is_pass(4.5, 4.5), true)
+  assert_eq(sc.is_pass(4.4, 4.5), false)
+}
+
+test "mean / min / max(エピソード横断)" {
+  let bels = [6, 4, 7]
+  assert_eq(milli(sc.mean(bels)), 5667)   // 17/3
+  assert_eq(sc.min_score(bels), 4)
+  assert_eq(sc.max_score(bels), 7)
+}
+
+test "空リスト" {
+  assert_eq(milli(sc.mean([])), 0)
+  assert_eq(sc.min_score([]), 0)
+  assert_eq(sc.max_score([]), 0)
+}
+
+test "mean_f: composite_mean" {
+  assert_eq(milli(sc.mean_f([5.2, 4.5, 5.5])), 5067)   // 15.2/3
+  assert_eq(milli(sc.mean_f([])), 0)
+}

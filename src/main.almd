@@ -1,0 +1,24 @@
+// CLI エントリポイント (native) — スコア集計の目視確認。
+import self as sc
+import json
+import value
+
+effect fn main() -> Unit = {
+  // あるエピソードの 7 軸スコア(BEL..CON)。
+  let comp = sc.composite(6, 5, 4, 5, 6, 5, 4)
+  // 3 エピソードの BEL スコア列。
+  let bels = [6, 4, 7]
+  let comps = [comp, 4.5, 5.5]
+  println(json.stringify(value.object([
+    ("composite", value.float(comp)),
+    ("composite_pct", value.float(sc.to_percent(comp))),
+    ("pass_at_4_5", value.bool(sc.is_pass(comp, 4.5))),
+    ("clamp_9", value.int(sc.clamp_score(9))),
+    ("clamp_0", value.int(sc.clamp_score(0))),
+    ("composite_clamped", value.float(sc.composite_clamped(9, 5, 4, 5, 6, 5, 0))),
+    ("bel_mean", value.float(sc.mean(bels))),
+    ("bel_min", value.int(sc.min_score(bels))),
+    ("bel_max", value.int(sc.max_score(bels))),
+    ("composite_mean", value.float(sc.mean_f(comps))),
+  ])))
+}

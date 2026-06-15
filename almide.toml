@@ -1,0 +1,4 @@
+[package]
+name = "fizz_eval_score"
+version = "0.1.0"
+description = "Fizz eval score — kotodama-eval score aggregation: 7-axis composite (weighted sum), Likert→percent, pass/fail, cross-episode mean/min/max. Matches kotodama eval.rs. One Almide core, native + wasm."

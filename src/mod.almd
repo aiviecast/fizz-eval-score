@@ -1,0 +1,69 @@
+// fizz_eval_score — kotodama-eval スコア集計の算術コア(§12 eval-runner)。
+//
+// 責務 (一行): judge LLM が出した 7 軸スコア(各 1-7 Likert)から、コンポジット
+// (重み付き合計)・0-100 正規化・合否、および複数エピソード横断の mean/min を計算する。
+//
+// judge LLM の実行は外部 API、スコアの集計算術は純粋なので Almide に集約=単一の正本。
+// 軸の定義(重みの正本)は fizz-eval-rubric 側。本部品は重みを eval.rs と同値で内蔵する。
+// 移植元: openaituber kotodama-cli/src/eval.rs(ScenarioScore::composite / aggregate)。
+
+import int
+import float
+import list
+
+// スコアを 1..7 にクランプ(judge の逸脱・パース異常を吸収)。
+fn clamp_score(s: Int) -> Int = if s < 1 then 1 else if s > 7 then 7 else s
+
+// 7 軸スコア → コンポジット(重み付き合計)。eval.rs ScenarioScore::composite と一致。
+// 0.20·BEL + 0.20·ENG + 0.15·TEX + 0.10·INI + 0.20·EMO + 0.10·TEM + 0.05·CON
+fn composite(bel: Int, eng: Int, tex: Int, ini: Int, emo: Int, tem: Int, con: Int) -> Float =
+  0.20 * int.to_float(bel)
+  + 0.20 * int.to_float(eng)
+  + 0.15 * int.to_float(tex)
+  + 0.10 * int.to_float(ini)
+  + 0.20 * int.to_float(emo)
+  + 0.10 * int.to_float(tem)
+  + 0.05 * int.to_float(con)
+
+// クランプしてからコンポジット(異常スコアに頑健)。
+fn composite_clamped(bel: Int, eng: Int, tex: Int, ini: Int, emo: Int, tem: Int, con: Int) -> Float =
+  composite(clamp_score(bel), clamp_score(eng), clamp_score(tex), clamp_score(ini),
+            clamp_score(emo), clamp_score(tem), clamp_score(con))
+
+// Likert(1..7)の値を 0..100 % に正規化。1→0、7→100。
+fn to_percent(likert: Float) -> Float = (likert - 1.0) / 6.0 * 100.0
+
+// コンポジットの合否(threshold 以上で pass)。
+fn is_pass(comp: Float, threshold: Float) -> Bool = comp >= threshold
+
+// ---- 複数エピソード横断の集計(1 軸ぶんのスコア列に対して) ----
+
+// 平均(eval.rs aggregate: Σ/n)。空なら 0.0。
+fn mean(scores: List[Int]) -> Float = {
+  let n = list.len(scores)
+  if n == 0 then 0.0 else int.to_float(list.sum(scores)) / int.to_float(n)
+}
+
+// Float 列の平均(composite_mean 用)。空なら 0.0。
+fn mean_f(xs: List[Float]) -> Float = {
+  let n = list.len(xs)
+  if n == 0 then 0.0 else sum_f(xs) / int.to_float(n)
+}
+
+// 最小(regression 検出用 — 最弱の状況での値)。空なら 0。
+fn min_score(scores: List[Int]) -> Int = list.min(scores) ?? 0
+
+// 最大。空なら 0。
+fn max_score(scores: List[Int]) -> Int = list.max(scores) ?? 0
+
+// 内部: Float 列の総和(list.sum は Int 専用なので while で)。
+fn sum_f(xs: List[Float]) -> Float = {
+  var acc = 0.0
+  var i = 0
+  let n = list.len(xs)
+  while i < n {
+    acc = acc + list.get_or(xs, i, 0.0)
+    i = i + 1
+  }
+  acc
+}
