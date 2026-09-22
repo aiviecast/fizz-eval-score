@@ -5,7 +5,7 @@ openaituber `kotodama-cli/src/eval.rs`(`ScenarioScore::composite` / `aggregate`)
 スコアの集計算術だけを切り出した単一責任部品(§12 評価系)。
 
 judge LLM の実行は外部 API、**スコアをどう集計するか**は純粋なのでここに集約。
-軸の定義(重みの正本)は [fizz-eval-rubric](https://github.com/Aid-On/fizz-eval-rubric)。
+軸の定義(重みの正本)は [fizz-eval-rubric](https://github.com/aiviecast/fizz-eval-rubric)。
 
 ## API
 
