@@ -17,13 +17,13 @@ fn clamp_score(s: Int) -> Int = if s < 1 then 1 else if s > 7 then 7 else s
 // 7 軸スコア → コンポジット(重み付き合計)。eval.rs ScenarioScore::composite と一致。
 // 0.20·BEL + 0.20·ENG + 0.15·TEX + 0.10·INI + 0.20·EMO + 0.10·TEM + 0.05·CON
 fn composite(bel: Int, eng: Int, tex: Int, ini: Int, emo: Int, tem: Int, con: Int) -> Float =
-  0.20 * int.to_float(bel)
-  + 0.20 * int.to_float(eng)
-  + 0.15 * int.to_float(tex)
-  + 0.10 * int.to_float(ini)
-  + 0.20 * int.to_float(emo)
-  + 0.10 * int.to_float(tem)
-  + 0.05 * int.to_float(con)
+  0.20 * float.from(bel)
+  + 0.20 * float.from(eng)
+  + 0.15 * float.from(tex)
+  + 0.10 * float.from(ini)
+  + 0.20 * float.from(emo)
+  + 0.10 * float.from(tem)
+  + 0.05 * float.from(con)
 
 // クランプしてからコンポジット(異常スコアに頑健)。
 fn composite_clamped(bel: Int, eng: Int, tex: Int, ini: Int, emo: Int, tem: Int, con: Int) -> Float =
@@ -41,13 +41,13 @@ fn is_pass(comp: Float, threshold: Float) -> Bool = comp >= threshold
 // 平均(eval.rs aggregate: Σ/n)。空なら 0.0。
 fn mean(scores: List[Int]) -> Float = {
   let n = list.len(scores)
-  if n == 0 then 0.0 else int.to_float(list.sum(scores)) / int.to_float(n)
+  if n == 0 then 0.0 else float.from(list.sum(scores)) / float.from(n)
 }
 
 // Float 列の平均(composite_mean 用)。空なら 0.0。
 fn mean_f(xs: List[Float]) -> Float = {
   let n = list.len(xs)
-  if n == 0 then 0.0 else sum_f(xs) / int.to_float(n)
+  if n == 0 then 0.0 else sum_f(xs) / float.from(n)
 }
 
 // 最小(regression 検出用 — 最弱の状況での値)。空なら 0。
@@ -62,7 +62,7 @@ fn sum_f(xs: List[Float]) -> Float = {
   var i = 0
   let n = list.len(xs)
   while i < n {
-    acc = acc + list.get_or(xs, i, 0.0)
+    acc = acc + list.get(xs, i) ?? 0.0
     i = i + 1
   }
   acc

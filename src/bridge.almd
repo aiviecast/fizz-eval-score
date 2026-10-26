@@ -8,27 +8,27 @@ import float
 import int
 import list
 
-var g_in: Bytes = bytes.new(0)
+var g_in: Bytes = bytes.zeros(0)
 
 // score 列を 1 バイト 1 スコアで書き込むバッファを確保。
 @export(wasm, "in_alloc")
 fn in_alloc(len: Float) -> RawPtr = {
-  g_in = bytes.new(float.to_int(len))
+  g_in = bytes.zeros(int.from_saturating(len))
   bytes.as_mut_ptr(g_in)
 }
 
 @export(wasm, "clamp_score")
-fn w_clamp(s: Float) -> Float = int.to_float(sc.clamp_score(float.to_int(s)))
+fn w_clamp(s: Float) -> Float = float.from(sc.clamp_score(int.from_saturating(s)))
 
 @export(wasm, "composite")
 fn w_composite(bel: Float, eng: Float, tex: Float, ini: Float, emo: Float, tem: Float, con: Float) -> Float =
-  sc.composite(float.to_int(bel), float.to_int(eng), float.to_int(tex), float.to_int(ini),
-               float.to_int(emo), float.to_int(tem), float.to_int(con))
+  sc.composite(int.from_saturating(bel), int.from_saturating(eng), int.from_saturating(tex), int.from_saturating(ini),
+               int.from_saturating(emo), int.from_saturating(tem), int.from_saturating(con))
 
 @export(wasm, "composite_clamped")
 fn w_composite_clamped(bel: Float, eng: Float, tex: Float, ini: Float, emo: Float, tem: Float, con: Float) -> Float =
-  sc.composite_clamped(float.to_int(bel), float.to_int(eng), float.to_int(tex), float.to_int(ini),
-                       float.to_int(emo), float.to_int(tem), float.to_int(con))
+  sc.composite_clamped(int.from_saturating(bel), int.from_saturating(eng), int.from_saturating(tex), int.from_saturating(ini),
+                       int.from_saturating(emo), int.from_saturating(tem), int.from_saturating(con))
 
 @export(wasm, "to_percent")
 fn w_to_percent(likert: Float) -> Float = sc.to_percent(likert)
@@ -41,10 +41,10 @@ fn w_is_pass(comp: Float, threshold: Float) -> Float = if sc.is_pass(comp, thres
 fn w_mean() -> Float = sc.mean(bytes.to_list(g_in))
 
 @export(wasm, "min_score")
-fn w_min() -> Float = int.to_float(sc.min_score(bytes.to_list(g_in)))
+fn w_min() -> Float = float.from(sc.min_score(bytes.to_list(g_in)))
 
 @export(wasm, "max_score")
-fn w_max() -> Float = int.to_float(sc.max_score(bytes.to_list(g_in)))
+fn w_max() -> Float = float.from(sc.max_score(bytes.to_list(g_in)))
 
 effect fn main() -> Unit = {
   let _a = in_alloc(1.0)
