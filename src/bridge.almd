@@ -9,13 +9,13 @@ import float
 import int
 import list
 
-var g_in: Bytes = bytes.zeros(0)
+var g_in: Region = ffi.region(bytes.new())
 
 // score 列を 1 バイト 1 スコアで書き込むバッファを確保。
-@export(wasm, "in_alloc")
-fn in_alloc(len: Float) -> RawPtr = {
-  g_in = bytes.zeros(int.from_saturating(len))
-  ffi.address(g_in)
+@export(wasm, "in_alloc", returns: address)
+effect fn in_alloc(len: Float) -> Region = {
+  g_in = ffi.alloc(int.from_saturating(len))!
+  g_in
 }
 
 @export(wasm, "clamp_score")
@@ -39,20 +39,20 @@ fn w_is_pass(comp: Float, threshold: Float) -> Float = if sc.is_pass(comp, thres
 
 // g_in に書かれた score 列(1 バイト 1 スコア)の平均。
 @export(wasm, "mean")
-fn w_mean() -> Float = sc.mean(bytes.to_list(g_in))
+effect fn w_mean() -> Float = sc.mean(bytes.to_list(ffi.to_bytes(g_in)!))
 
 @export(wasm, "min_score")
-fn w_min() -> Float = float.from(sc.min_score(bytes.to_list(g_in)))
+effect fn w_min() -> Float = float.from(sc.min_score(bytes.to_list(ffi.to_bytes(g_in)!)))
 
 @export(wasm, "max_score")
-fn w_max() -> Float = float.from(sc.max_score(bytes.to_list(g_in)))
+effect fn w_max() -> Float = float.from(sc.max_score(bytes.to_list(ffi.to_bytes(g_in)!)))
 
 effect fn main() -> Unit = {
-  let _a = in_alloc(1.0)
+  let _a = in_alloc(1.0)!
   let _b = w_composite(6.0, 5.0, 4.0, 5.0, 6.0, 5.0, 4.0)
   let _c = w_to_percent(5.2)
-  let _d = w_mean()
-  let _e = w_min()
-  let _f = w_max()
+  let _d = w_mean()!
+  let _e = w_min()!
+  let _f = w_max()!
   ()
 }
