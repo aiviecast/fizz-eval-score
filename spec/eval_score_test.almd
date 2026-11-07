@@ -2,7 +2,7 @@ import self as sc
 import float
 
 // Float をミリ単位 Int にして厳密比較(浮動小数の表現差を吸収)。
-fn milli(x: Float) -> Int = float.to_int(float.round(x * 1000.0))
+fn milli(x: Float) -> Int = int.from_saturating(float.round(x * 1000.0))
 
 test "clamp_score: 1..7" {
   assert_eq(sc.clamp_score(0), 1)
