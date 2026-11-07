@@ -7,7 +7,6 @@ import bytes
 import ffi
 import float
 import int
-import list
 
 var g_in: Region = ffi.region(bytes.new())
 

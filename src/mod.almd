@@ -7,7 +7,6 @@
 // 軸の定義(重みの正本)は fizz-eval-rubric 側。本部品は重みを eval.rs と同値で内蔵する。
 // 移植元: openaituber kotodama-cli/src/eval.rs(ScenarioScore::composite / aggregate)。
 
-import int
 import float
 import list
 
@@ -62,7 +61,7 @@ fn sum_f(xs: List[Float]) -> Float = {
   var i = 0
   let n = list.len(xs)
   while i < n {
-    acc = acc + list.get(xs, i) ?? 0.0
+    acc = acc + (list.get(xs, i) ?? 0.0)
     i = i + 1
   }
   acc
